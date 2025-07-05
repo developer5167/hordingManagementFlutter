@@ -1,4 +1,3 @@
-
 class ApiUrl {
   static String baseUrl = 'http://192.168.1.39:4000/';
 
@@ -17,6 +16,7 @@ class ApiUrl {
   static String upload() => '${baseUrl}upload';
 
   static String saveAdData() => '${baseUrl}saveAdData';
+
   static String saveCompanyAdData() => '${baseUrl}saveCompanyAdData';
 
   static String fetchUserActiveAds(String userId) => '${baseUrl}fetchUserActiveAds?user_id=$userId';
@@ -28,6 +28,9 @@ class ApiUrl {
   static String fetchUserExpiredAds(String userId) => '${baseUrl}fetchUserExpiredAds?user_id=$userId';
 
   static String getStatics(String adId) => '${baseUrl}getStatics?ad_id=$adId';
+
   static String turnOfClientAds(String deviceId, bool isEnabled) => '${baseUrl}turnOfClientAds?device_id=$deviceId&isEnabled=$isEnabled';
+  static String turnOffAllAds(String deviceId, bool isEnabled) => '${baseUrl}turnOffAllAds?device_id=$deviceId&isEnabled=$isEnabled';
+
   static String getAllSettingsEvent(String deviceId) => '${baseUrl}getAllSettingsEvent?device_id=$deviceId';
 }

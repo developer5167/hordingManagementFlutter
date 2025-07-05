@@ -10,6 +10,7 @@ class AdminSettingsBloc extends Bloc<AdminSettingsEvents, AdminSettingsStates> {
 
   AdminSettingsBloc(this.respository) :super(AdminSettingsInitState()) {
     on<SettingsTurnOfClientAdsEvent>(turnOfClientAds);
+    on<SettingsTurnOfAllAdsEvent>(turnOfAllAds);
     on<GetAllSettingsEvent>(getAllSettingsEvent);
   }
 
@@ -23,13 +24,25 @@ class AdminSettingsBloc extends Bloc<AdminSettingsEvents, AdminSettingsStates> {
       emitter(SettingsTurnOfClientAdsErrorState(e.toString().replaceAll("Exception: ", "")));
     }
   }
+
+
+  void turnOfAllAds(SettingsTurnOfAllAdsEvent event, Emitter<AdminSettingsStates> emitter) async {
+    emitter(SettingsTurnOfClientAdsLoadingState());
+    String apiUrl = ApiUrl.turnOffAllAds(event.device_id,event.isEnabled);
+    try {
+      var response = await respository.callGetApi(apiUrl);
+      emitter(SettingsTurnOfAllAdsSuccessState(response.body));
+    } catch (e) {
+      emitter(SettingsTurnOfAllAdsErrorState(e.toString().replaceAll("Exception: ", "")));
+    }
+  }
   void getAllSettingsEvent(GetAllSettingsEvent event, Emitter<AdminSettingsStates> emitter) async {
     emitter(SettingsTurnOfClientAdsLoadingState());
     String apiUrl = ApiUrl.getAllSettingsEvent(event.device_id);
     try {
       var response = await respository.callGetApi(apiUrl);
       Map<String,dynamic> map = jsonDecode(response.body);
-      emitter(GetAllSettingsSuccessState(map["deviceId"],map["showClientAds"]));
+      emitter(GetAllSettingsSuccessState(map["deviceId"],map["showClientAds"],map["pauseAllAds"]));
     } catch (e) {
       emitter(SettingsTurnOfClientAdsErrorState(e.toString().replaceAll("Exception: ", "")));
     }
@@ -44,6 +57,14 @@ class SettingsTurnOfClientAdsEvent extends AdminSettingsEvents {
   final String device_id;
   final bool isEnabled;
   SettingsTurnOfClientAdsEvent(this.device_id,this.isEnabled);
+  @override
+  List<Object?> get props => [device_id,isEnabled];
+
+}
+class SettingsTurnOfAllAdsEvent extends AdminSettingsEvents {
+  final String device_id;
+  final bool isEnabled;
+  SettingsTurnOfAllAdsEvent(this.device_id,this.isEnabled);
   @override
   List<Object?> get props => [device_id,isEnabled];
 
@@ -76,15 +97,20 @@ class SettingsTurnOfClientAdsLoadingState extends AdminSettingsStates {
   @override
   List<Object?> get props => [];
 
+}class SettingsTurnOfAllAdsLoadingState extends AdminSettingsStates {
+  @override
+  List<Object?> get props => [];
+
 }
 class GetAllSettingsSuccessState extends AdminSettingsStates{
   final String device_id;
   final bool showClientAds;
+  final bool pauseAllAds;
 
-  GetAllSettingsSuccessState(this.device_id, this.showClientAds);
+  GetAllSettingsSuccessState(this.device_id, this.showClientAds,this.pauseAllAds);
 
   @override
-  List<Object?> get props => [device_id,showClientAds];
+  List<Object?> get props => [device_id,showClientAds,pauseAllAds];
 
 }
 class SettingsTurnOfClientAdsErrorState extends AdminSettingsStates {
@@ -96,11 +122,36 @@ class SettingsTurnOfClientAdsErrorState extends AdminSettingsStates {
   List<Object?> get props => [message];
 
 }
+class SettingsAllAdsErrorState extends AdminSettingsStates {
+  final String message;
+
+  SettingsAllAdsErrorState(this.message);
+
+  @override
+  List<Object?> get props => [message];
+
+}
 
 class SettingsTurnOfClientAdsSuccessState extends AdminSettingsStates {
   final String isEnabled;
 
   SettingsTurnOfClientAdsSuccessState(this.isEnabled);
+  @override
+  List<Object?> get props => [isEnabled];
+
+}
+class SettingsTurnOfAllAdsSuccessState extends AdminSettingsStates {
+  final String isEnabled;
+
+  SettingsTurnOfAllAdsSuccessState(this.isEnabled);
+  @override
+  List<Object?> get props => [isEnabled];
+
+}
+class SettingsTurnOfAllAdsErrorState extends AdminSettingsStates {
+  final String isEnabled;
+
+  SettingsTurnOfAllAdsErrorState(this.isEnabled);
   @override
   List<Object?> get props => [isEnabled];
 

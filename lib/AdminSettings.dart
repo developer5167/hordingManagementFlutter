@@ -17,6 +17,7 @@ class AdminSettingsScreen extends StatefulWidget {
 class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   final deviceIdController = TextEditingController();
   bool switchState = false;
+  bool pauseAllAds = false;
   late UploadAdsScreenBloc uploadAdsScreenBloc;
   late AdminSettingsBloc adminSettingsBloc;
   List<DeviceIdModel> deviceIds = [];
@@ -132,27 +133,54 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                         print('STATE  $state');
                         if (state is GetAllSettingsSuccessState) {
                           switchState = state.showClientAds;
+                          pauseAllAds = state.pauseAllAds;
                         }
                         if (state is SettingsTurnOfClientAdsSuccessState) {
                           switchState = state.isEnabled == "true" ? true : false;
+                        }if (state is SettingsTurnOfAllAdsSuccessState) {
+                          pauseAllAds = state.isEnabled == "true" ? true : false;
                         }
                         if (kDebugMode) {
                           print('STATUS: $switchState');
                         }
-                        return Row(
+                        return Column(
                           children: [
-                            Text(
-                              "Turn off Client Ads",
-                              style: GoogleFonts.poppins(fontSize: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Turn off Client Ads",
+                                  style: GoogleFonts.poppins(fontSize: 20),
+                                ),
+                                state is SettingsTurnOfClientAdsLoadingState
+                                    ? const CircularProgressIndicator()
+                                    : Switch(
+                                        value: switchState,
+                                        onChanged: (data) {
+                                          if(deviceIdController.text.isEmpty)return;
+                                          context.read<AdminSettingsBloc>().add(SettingsTurnOfClientAdsEvent(deviceIdController.text, data));
+                                        },
+                                      ),
+                              ],
                             ),
-                            state is SettingsTurnOfClientAdsLoadingState
-                                ? const CircularProgressIndicator()
-                                : Switch(
-                                    value: switchState,
-                                    onChanged: (data) {
-                                      context.read<AdminSettingsBloc>().add(SettingsTurnOfClientAdsEvent(deviceIdController.text, data));
-                                    },
-                                  ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Pause All Ads",
+                                  style: GoogleFonts.poppins(fontSize: 20),
+                                ),
+                                state is SettingsTurnOfAllAdsLoadingState
+                                    ? const CircularProgressIndicator()
+                                    : Switch(
+                                        value: pauseAllAds,
+                                        onChanged: (data) {
+                                          if(deviceIdController.text.isEmpty)return;
+                                          context.read<AdminSettingsBloc>().add(SettingsTurnOfAllAdsEvent(deviceIdController.text, data));
+                                        },
+                                      ),
+                              ],
+                            ),
                           ],
                         );
                       },
