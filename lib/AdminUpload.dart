@@ -17,19 +17,17 @@ import 'package:intl/intl.dart';
 
 import 'ApiUrls.dart';
 
-class UploadAdScreen extends StatefulWidget {
-  const UploadAdScreen({super.key});
+class AdminUploadScreen extends StatefulWidget {
+  const AdminUploadScreen({super.key});
 
   @override
-  _UploadAdScreenState createState() => _UploadAdScreenState();
+  _AdminUploadScreenState createState() => _AdminUploadScreenState();
 }
 
-class _UploadAdScreenState extends State<UploadAdScreen> {
+class _AdminUploadScreenState extends State<AdminUploadScreen> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   final deviceIdController = TextEditingController();
-  final startDateController = TextEditingController();
-  final endDateController = TextEditingController();
   final selectedFileController = TextEditingController();
   late File file;
 
@@ -39,59 +37,16 @@ class _UploadAdScreenState extends State<UploadAdScreen> {
   DateTime? startDate;
   DateTime? endDate;
 
-  Future<void> _pickDateTime(TextEditingController controller, {bool isStart = true}) async {
-    final now = DateTime.now();
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: now,
-      lastDate: DateTime(now.year + 1),
-    );
-
-    if (pickedDate == null) return;
-
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime == null) return;
-
-    final selectedDateTime = DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
-
-    if (isStart) {
-      startDate = selectedDateTime;
-      controller.text = DateFormat("yyyy-MM-dd HH:mm:ss").format(startDate!);
-
-      // controller.text = DateFormat('yyyy-MM-dd HH:mm').format(startDate!);
-    } else {
-      if (startDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select start date first")));
-        return;
-      }
-      if (selectedDateTime.isBefore(startDate!.add(const Duration(hours: 24)))) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("End date must be at least 24 hours after start date")));
-        return;
-      }
-      endDate = selectedDateTime;
-      controller.text = DateFormat("yyyy-MM-dd HH:mm:ss").format(endDate!);
-    }
-  }
 
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: [".mp4",".jpg",".png",".jpeg"]
+        type: FileType.custom,
+        allowedExtensions: ["mp4","jpg","png","jpeg"]
     );
     if (result != null) {
       selectedFileController.text = result.files.single.name;
       file = File(result.files.single.path.toString());
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("File selected: ${result.files.single.name}")));
     }
   }
@@ -206,34 +161,6 @@ class _UploadAdScreenState extends State<UploadAdScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => _pickDateTime(startDateController, isStart: true),
-                                  child: AbsorbPointer(
-                                    child: TextField(
-                                      controller: startDateController,
-                                      decoration: _inputDecoration(hint: "Start Date", prefixIcon: Icons.calendar_today),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => _pickDateTime(endDateController, isStart: false),
-                                  child: AbsorbPointer(
-                                    child: TextField(
-                                      controller: endDateController,
-                                      decoration: _inputDecoration(hint: "End Date", prefixIcon: Icons.calendar_month),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -253,14 +180,6 @@ class _UploadAdScreenState extends State<UploadAdScreen> {
                                       }
                                       if (selectedFileController.text.isEmpty) {
                                         showSnackBar(context, "Please select file");
-                                        return;
-                                      }
-                                      if (startDateController.text.isEmpty) {
-                                        showSnackBar(context, "Please select start date");
-                                        return;
-                                      }
-                                      if (endDateController.text.isEmpty) {
-                                        showSnackBar(context, "Please select end date");
                                         return;
                                       }
                                       submitForm();
@@ -311,8 +230,6 @@ class _UploadAdScreenState extends State<UploadAdScreen> {
                 showSnackBar(context, state.message.message.toString());
               }
               if (state is UploadAdsSaveAdSuccessState) {
-                endDateController.text = "";
-                startDateController.text = "";
                 deviceIdController.text = "";
                 descriptionController.text = "";
                 titleController.text = "";
@@ -326,26 +243,21 @@ class _UploadAdScreenState extends State<UploadAdScreen> {
 
   void submitForm() async {
     LoginResponse? loginResponse = await getLoginResponse();
-
-    uploadAdsScreenBloc.add(FilesUploadInitEvent(file,loginResponse!.userId));
+   var userid = loginResponse?.userId = 0;
+    uploadAdsScreenBloc.add(FilesUploadInitEvent(file,userid));
   }
 
   void saveData(String uploadResponse, String fileName) async {
-    LoginResponse? loginResponse = await getLoginResponse();
     PostAdData postAdData = PostAdData();
-    postAdData.userId = loginResponse?.userId;
-    postAdData.endDate = endDateController.text;
-    postAdData.startDate = startDateController.text;
     postAdData.deviceId = deviceIdController.text;
     postAdData.description = descriptionController.text;
     postAdData.title = titleController.text;
     postAdData.adData = uploadResponse;
     postAdData.isactive = true;
     postAdData.fileName = fileName;
-    postAdData.isapproved = false;
     postAdData.memeType = (uploadResponse.contains(".jpg") || uploadResponse.contains(".png") || uploadResponse.contains(".jpeg")) ? "IMAGE" : "VIDEO";
     log("request: ${jsonEncode(postAdData.toJson())}");
-    String apiUrl = ApiUrl.saveAdData();
-    uploadAdsScreenBloc.add(SaveAdDataEvent(postAdData,apiUrl));
+    String apiUrl = ApiUrl.saveCompanyAdData();
+    uploadAdsScreenBloc.add(SaveAdDataEvent(postAdData,apiUrl),);
   }
 }

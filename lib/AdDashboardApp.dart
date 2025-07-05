@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hording_management/AdInfoScreen.dart';
+import 'package:hording_management/AdminSettings.dart';
+import 'package:hording_management/AdminUpload.dart';
 import 'package:hording_management/Repository.dart';
 import 'package:hording_management/UploadAdScreen.dart';
 import 'package:hording_management/bloc/DashboardBloc.dart';
@@ -60,17 +62,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return Stack(
             children: [
               Scaffold(
-                floatingActionButton: IconButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (builder) => const UploadAdScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.add_circle,
-                    size: 60,
-                    color: Colors.blue,
-                  ),
-                ),
-                floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
                 appBar: AppBar(
                   title: Row(
                     children: [
@@ -255,6 +246,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ],
                             ),
                             expiredAds.isNotEmpty ? buildAdsList(expiredAds) : Text("No ads were in review", style: GoogleFonts.poppins(fontSize: 12)),
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (builder) => const AdminUploadScreen()));
+                                  },
+                                  icon: const Icon(
+                                    Icons.add_circle,
+                                    size: 40,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                 Text("Admin",style: GoogleFonts.poppins(fontSize: 12)),
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (builder) => const UploadAdScreen()));
+                                  },
+                                  icon: const Icon(
+                                    Icons.add_circle,
+                                    size: 40,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                 Text("Client",style: GoogleFonts.poppins(fontSize: 12)),
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (builder) => const AdminSettingsScreen()));
+                                  },
+                                  icon: const Icon(
+                                    Icons.add_circle,
+                                    size: 40,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                 Text("Settings",style: GoogleFonts.poppins(fontSize: 12),),
+                              ],
+                            )
                           ],
                         ),
                       ],

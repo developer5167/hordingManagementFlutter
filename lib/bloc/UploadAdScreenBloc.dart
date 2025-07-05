@@ -42,9 +42,8 @@ class UploadAdsScreenBloc extends Bloc<UploadAdsEvents, UploadAdsStates> {
   uploadFiles(FilesUploadInitEvent event, Emitter<UploadAdsStates> emitter) async {
     String apiUrl = ApiUrl.upload();
     emitter(UploadAdsLoadingState());
-    LoginResponse? loginResponse = await getLoginResponse();
     try {
-      Response? uploadResponse = await respository.fileUploadMultipart(event.file, loginResponse!.userId.toString(), apiUrl);
+      Response? uploadResponse = await respository.fileUploadMultipart(event.file, event.userId.toString(), apiUrl);
       if(uploadResponse!=null) {
         Map<String, dynamic> map = jsonDecode(uploadResponse.body);
         log('RESPONSE : ${map["url"]}');
@@ -59,10 +58,10 @@ class UploadAdsScreenBloc extends Bloc<UploadAdsEvents, UploadAdsStates> {
   }
 
   saveData(SaveAdDataEvent event, Emitter<UploadAdsStates> emitter) async {
-    String apiUrl = ApiUrl.saveAdData();
+
     emitter(UploadAdsLoadingState());
     try {
-      var response = await respository.calPostApi(event.postAdData, apiUrl);
+      var response = await respository.calPostApi(event.postAdData, event.adUrl);
       if (kDebugMode) {
         print('RESPONSE: ${response.body}');
       }
@@ -83,17 +82,19 @@ class GetDeviceIdsEvent extends UploadAdsEvents {
 
 class SaveAdDataEvent extends UploadAdsEvents {
   final PostAdData postAdData;
+  final String adUrl;
 
-  SaveAdDataEvent(this.postAdData);
+  SaveAdDataEvent(this.postAdData,this.adUrl);
 
   @override
-  List<Object?> get props => [postAdData];
+  List<Object?> get props => [postAdData,adUrl];
 }
 
 class FilesUploadInitEvent extends UploadAdsEvents {
   final File file;
+  final int? userId;
 
-  FilesUploadInitEvent(this.file);
+  FilesUploadInitEvent(this.file, this.userId);
 
   @override
   List<Object?> get props => [file];
